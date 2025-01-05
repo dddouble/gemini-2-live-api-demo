@@ -1,3 +1,5 @@
+# 添加一个小功能，方便移动设备使用后置摄像头
+
 # Gemini 2.0 Flash Multimodal Live API Client
 
 A lightweight vanilla JavaScript implementation of the Gemini 2.0 Flash Multimodal Live API client. This project provides real-time interaction with Gemini's API through text, audio, video, and screen sharing capabilities.
