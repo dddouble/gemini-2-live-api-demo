@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 #添加一个小功能
 #方便移动设备使用后置摄像头
-=======
-# 添加一个小功能，方便移动设备使用后置摄像头
->>>>>>> fbec955a316a8a6b232da5f74c646b7fde5581ac
+
 
 # Gemini 2.0 Flash Multimodal Live API Client
 
