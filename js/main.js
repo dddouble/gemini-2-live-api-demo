@@ -35,6 +35,14 @@ const configToggle = document.getElementById('config-toggle');
 const toggleLogs = document.getElementById('toggle-logs');
 const logsWrapper = document.querySelector('.logs-wrapper');
 const configContainer = document.getElementById('config-container');
+const switchCameraButton = document.getElementById('switch-camera-button');
+
+let facingMode = 'environment'; // 默认设置为后置摄像头
+
+// 获取当前摄像头状态
+function getCurrentCameraState() {
+    return isVideoActive;
+  }
 
 // Theme switcher
 const themeToggle = document.getElementById('theme-toggle');
@@ -581,35 +589,36 @@ connectButton.textContent = 'Connect';
  * Handles the video toggle. Starts or stops video streaming.
  * @returns {Promise<void>}
  */
+/**
+ * Toggles video recording on or off.
+ */
 async function handleVideoToggle() {
-    Logger.info('Video toggle clicked, current state:', { isVideoActive, isConnected });
-    
     if (!isVideoActive) {
         try {
-            Logger.info('Attempting to start video');
             if (!videoManager) {
                 videoManager = new VideoManager();
             }
             
+            // 修改这里来默认使用后置摄像头
             await videoManager.start((frameData) => {
-                if (isConnected) {
-                    client.sendRealtimeInput([frameData]);
-                }
-            });
-
+                console.log('Video frame received', frameData);
+            }, facingMode);
+            
             isVideoActive = true;
             cameraIcon.textContent = 'videocam_off';
             cameraButton.classList.add('active');
-            Logger.info('Camera started successfully');
             logMessage('Camera started', 'system');
+            switchCameraButton.disabled = false; // 启用切换摄像头按钮
 
         } catch (error) {
-            Logger.error('Camera error:', error);
-            logMessage(`Error: ${error.message}`, 'system');
+            // 打印更详细的错误信息
+            console.error('Failed to start video recording', error);
+            logMessage(`Error starting camera: ${error.message}`, 'system'); // 使用 logMessage 显示错误
             isVideoActive = false;
             videoManager = null;
             cameraIcon.textContent = 'videocam';
             cameraButton.classList.remove('active');
+            switchCameraButton.disabled = true; //禁用切换摄像头按钮
         }
     } else {
         Logger.info('Stopping video');
@@ -625,14 +634,29 @@ function stopVideo() {
         videoManager.stop();
         videoManager = null;
     }
-    isVideoActive = false;
-    cameraIcon.textContent = 'videocam';
-    cameraButton.classList.remove('active');
-    logMessage('Camera stopped', 'system');
-}
+        isVideoActive = false;
+        cameraIcon.textContent = 'videocam';
+        cameraButton.classList.remove('active');
+        logMessage('Camera stopped', 'system');
+        switchCameraButton.disabled = true;
+    }
+
+/**
+ * Handles toggling the camera.
+ */
+async function switchCamera(){
+    if(videoManager){
+        facingMode = facingMode === 'user' ? 'environment' : 'user'; // 切换摄像头
+        await videoManager.start((frameData) => {
+            console.log('Video frame received', frameData);
+        },facingMode);
+            logMessage(`Switched to ${facingMode === 'user' ? 'front' : 'back'} camera`, 'system');
+        }
+    }
 
 cameraButton.addEventListener('click', handleVideoToggle);
 stopVideoButton.addEventListener('click', stopVideo);
+switchCameraButton.addEventListener('click', switchCamera);
 
 cameraButton.disabled = true;
 

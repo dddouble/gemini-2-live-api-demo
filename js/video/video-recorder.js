@@ -45,13 +45,28 @@ export class VideoRecorder {
             this.previewElement = previewElement;
             this.onVideoData = onVideoData;
 
-            // Request camera access
-            this.stream = await navigator.mediaDevices.getUserMedia({ 
-                video: {
-                    width: { ideal: this.options.width },
-                    height: { ideal: this.options.height }
-                }
-            });
+            let stream;
+            try {
+                // Try to get back camera if available
+                 stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: this.options.width },
+                        height: { ideal: this.options.height },
+                        facingMode: 'environment'
+                    }
+                });
+            }catch(error){
+                 Logger.warn('Failed to get environment camera, falling back to user camera:', error);
+                // Fallback to default camera if we could not get the environment camera
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: this.options.width },
+                        height: { ideal: this.options.height }
+                    }
+                });
+            }
+              
+            this.stream = stream;
 
             // Set up preview
             this.previewElement.srcObject = this.stream;

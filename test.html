@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>摄像头控制</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button id="startButton">开启摄像头</button>
+    <button id="switchButton" disabled>切换摄像头</button>
+    <video id="video" width="640" height="480" autoplay playsinline></video>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const switchButton = document.getElementById('switchButton');
+        const video = document.getElementById('video');
+        let currentStream = null;
+        let facingMode = 'environment'; // 设置默认开启后置摄像头
+        let cameraActive = false;
+
+        // 开启/关闭摄像头函数
+        async function toggleCamera() {
+            if (cameraActive) {
+              stopCamera();
+            } else {
+               startCamera();
+            }
+        }
+
+         // 开启摄像头函数
+        async function startCamera() {
+          try{
+            const constraints = {
+              audio: false,
+              video: {
+                facingMode: facingMode
+                }
+              };
+            currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = currentStream;
+            switchButton.disabled = false; // 开启后允许切换摄像头
+            startButton.textContent = '关闭摄像头';
+            cameraActive = true;
+          } catch(error){
+            console.error('访问摄像头失败', error);
+            alert('无法访问摄像头，请检查是否授予权限。');
+          }
+        }
+
+          //关闭摄像头函数
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                video.srcObject = null; //清空 video 的srcObject
+                currentStream = null;
+                switchButton.disabled = true; //关闭摄像头后，不允许切换
+                startButton.textContent = '开启摄像头';
+                cameraActive = false;
+
+            }
+        }
+
+        // 切换摄像头函数
+        async function switchCamera() {
+            if (currentStream) {
+              currentStream.getTracks().forEach(track => track.stop()); //先停止所有track
+            }
+
+            facingMode = facingMode === 'user' ? 'environment' : 'user'; //切换前后摄像头
+            startCamera(); // 重新调用 startCamera
+        }
+
+         // 添加按钮点击事件
+        startButton.addEventListener('click', toggleCamera);
+        switchButton.addEventListener('click', switchCamera);
+    </script>
+</body>
+</html>
